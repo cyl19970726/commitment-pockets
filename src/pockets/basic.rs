@@ -110,10 +110,11 @@ impl<E: Pairing> BasicProof<E> {
         assert!(poly_degree > 1);
 
         let value = poly.evaluate(&point);
-
+        // x - point
         let div_poly =
             UniPolynomial::new(vec![E::ScalarField::zero() - point, E::ScalarField::one()]);
-
+        // ??? res_poly = q(x) = ( f(x) - f(point) ) / (x - point)
+        // res_poly = q(x) = f(x) / (x - point)
         let res_poly = poly.div(&div_poly).unwrap();
 
         let w = multiexp::<E>(
@@ -131,7 +132,9 @@ impl<E: Pairing> BasicProof<E> {
         commit: &BasicPolyCommit<E>,
         point: E::ScalarField,
     ) -> bool {
+        // f(x)
         let lhs = E::pairing(commit.commit, params.g2);
+        // q(x) * (x-point) + f(point)
         let rhs = E::multi_pairing(
             [&self.w, &params.powers_of_g1[0].mul(self.value).into()],
             [
@@ -139,7 +142,7 @@ impl<E: Pairing> BasicProof<E> {
                 &params.g2,
             ],
         );
-
+        // f(x) == q(x) * (x-point) + f(point)
         lhs == rhs
     }
 }
